@@ -1,11 +1,13 @@
 package niffler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/duxinglangzi/niffler/constants"
 	"github.com/duxinglangzi/niffler/consumers"
 	"github.com/duxinglangzi/niffler/util"
+	"os"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -55,6 +57,11 @@ func InitNiffler(projectName string, consumer consumers.Consumer) Niffler {
 	if projectName == "" {
 		panic(errors.New("project name is null "))
 	}
+	marshal, _ := json.Marshal(map[string]string{
+		"niffler_sdk_name":    constants.SDK_LIB,
+		"niffler_sdk_version": constants.SDK_VERSION,
+	})
+	fmt.Fprintln(os.Stdout, string(marshal))
 	return Niffler{
 		ProjectName:     projectName,
 		Consumer:        consumer,
