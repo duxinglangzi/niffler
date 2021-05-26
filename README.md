@@ -23,7 +23,7 @@ func TestCase(t *testing.T) {
 		t.Log(err.Error())
 	}
 
-    // 打印日志
+    // 打印数据到文件内
     nifferLog := niffler.InitConcurrentLoggingConsumer("test", "./event_log",false)
 	defer nifferLog.Close() // 切记一定要记得关闭、落盘
     err := nifferLog.AddUserEvent("distinctId", "test-event-log", properties)
@@ -37,6 +37,10 @@ func TestCase(t *testing.T) {
 	if consoleErr != nil {
 		t.Log(consoleErr.Error())
 	}
+    
+    // 打印日志模式 ， 当logType为空字符串时，则不进入es
+    niffer.Log("info",properties)
+
 
 
 
