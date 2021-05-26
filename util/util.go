@@ -1,5 +1,24 @@
 package util
 
+import "time"
+
+func NowMilliseconds() int64 {
+	return time.Now().UnixNano() / 1000 / 1000
+}
+
+func MergeCopy(source,target map[string]interface{}) map[string]interface{} {
+	if target == nil {
+		target = make(map[string]interface{})
+	}
+	if source == nil {
+		return target
+	}
+	for key, ele := range DeepCopy(source) {
+		target[key] = ele
+	}
+	return target
+}
+
 func DeepCopy(value map[string]interface{}) map[string]interface{} {
 	newCopy := deepCopy(value)
 	if newMap, ok := newCopy.(map[string]interface{}); ok {

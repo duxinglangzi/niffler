@@ -132,11 +132,12 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 	var eventProperties map[string]interface{}
 	if n.superProperties != nil {
 		eventProperties = util.DeepCopy(n.superProperties)
-	}
-	if properties != nil {
-		eventProperties = util.DeepCopy(properties)
 	} else {
 		eventProperties = make(map[string]interface{})
+	}
+	
+	if properties != nil {
+		eventProperties = util.MergeCopy(properties,eventProperties)
 	}
 	// Event time
 	eventTime := n.extractEventTime(eventProperties)
@@ -152,6 +153,22 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 	return n.Consumer.Send(event)
 }
 
+// 日志打印， 当不想让日志信息进入到es时，传入空字符串即可
+func (n *Niffler) Log(logType string,properties map[string]interface{}) error {
+	if properties == nil || len(properties) < 1 {
+		return errors.New("properties is null ")
+	}
+	logMap := make(map[string]interface{})
+	if logType != "" {
+		logMap["type"] = logType
+	}
+	logMap["time"] = util.NowMilliseconds()
+	logMap["log_id"] = strings.ReplaceAll(util.NewUUID(), "-", "")
+	logMap["properties"] = util.DeepCopy(properties)
+	logMap["project_name"] = n.ProjectName
+	return n.Consumer.Send(logMap)
+}
+
 // if event time is null , return current milliseconds
 func (n *Niffler) extractEventTime(m map[string]interface{}) int64 {
 	if t, contain := m["$time"]; contain {
@@ -159,10 +176,10 @@ func (n *Niffler) extractEventTime(m map[string]interface{}) int64 {
 			delete(m, "$time")
 			return v
 		} else {
-			return time.Now().UnixNano() / 1000 / 1000
+			return util.NowMilliseconds()
 		}
 	}
-	return time.Now().UnixNano() / 1000 / 1000
+	return util.NowMilliseconds()
 }
 
 func (n *Niffler) getLibProperties() map[string]string {
