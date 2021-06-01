@@ -14,11 +14,12 @@ func TestCase(t *testing.T) {
 		"aa":            34.0034,
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
+        "test_value":    "value not null",
 	}
 
     // 通过debug模式调试代码
     niffer := niffler.InitDebuggerConsumer("test", "http://127.0.0.1:8071/api/v1/order/abc")
-	err := niffer.AddUserEvent("distinctId", "test-event", properties)
+	err := niffer.AddUserEvent("distinctId", "test_event", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
@@ -26,14 +27,14 @@ func TestCase(t *testing.T) {
     // 打印数据到文件内
     nifferLog := niffler.InitConcurrentLoggingConsumer("test", "./event_log",false)
 	defer nifferLog.Close() // 切记一定要记得关闭、落盘
-    err := nifferLog.AddUserEvent("distinctId", "test-event-log", properties)
+    err := nifferLog.AddUserEvent("distinctId", "test_event_log", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
     
     // 在控制台打印
     nifflerConsole := niffler.InitConsoleConsumer("test")
-    consoleErr := nifflerConsole.AddUserEvent("distinctId", "test-event-log", properties)
+    consoleErr := nifflerConsole.AddUserEvent("distinctId", "test_event_log", properties)
 	if consoleErr != nil {
 		t.Log(consoleErr.Error())
 	}
@@ -54,6 +55,7 @@ func TestCase(t *testing.T) {
 `关键字: distinct_id、time、properties、events、event、user_id、date、datetime`
 `String 类型,长度不应超过 8192 `
 `支持的数据类型: string,int64,float64,bool,time.Time,[]string `
+`所有key值命名需遵循驼峰命名法, 如: test_event_log `
 
 
 ### 线上环境中产生的日志，需要单独通过 filebeat 软件监控并增量的传输至kafka ，再由数据团队解析使用， 安装及配置filebeat方式如下:

@@ -17,7 +17,7 @@ func TestConcurrentLogConsumer(t *testing.T) {
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
 	}
-	err := niffer.AddCartEvent("distinctId", "test-event", properties)
+	err := niffer.AddCartEvent("distinctId", "test_event", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}

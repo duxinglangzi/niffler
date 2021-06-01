@@ -205,7 +205,10 @@ func (n *Niffler) assertProperties(properties map[string]interface{}) error {
 		return nil
 	}
 	for k, v := range properties {
-		n.assertKeyWithRegex("property", k)
+		err := n.assertKeyWithRegex("property", k)
+		if err != nil {
+			return err
+		}
 		// 检查value 值，只支持部分类型
 		switch v.(type) {
 		case bool:
@@ -245,7 +248,7 @@ func (n *Niffler) assertKeyWithRegex(typeName, key string) error {
 	if err != nil {
 		return err
 	}
-	if n.checkPattern([]byte(key)) {
+	if !n.checkPattern([]byte(key)) {
 		return errors.New("The " + typeName + " '" + key + "' is invalid.")
 	}
 	return err
