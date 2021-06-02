@@ -7,7 +7,10 @@ import (
 )
 
 func TestConcurrentLogConsumer(t *testing.T) {
-	niffer := niffler.InitConcurrentLoggingConsumer("test", "./event_log", false)
+	niffer,err := niffler.InitConcurrentLoggingConsumer("test", "./event_log", false)
+	if err != nil {
+		t.Log(err.Error())
+	}
 	defer niffer.Close() // 切记一定要记得关闭、落盘
 	properties := map[string]interface{}{
 		"Name":          "name value",
@@ -17,7 +20,7 @@ func TestConcurrentLogConsumer(t *testing.T) {
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
 	}
-	err := niffer.AddCartEvent("distinctId", "test_event", properties)
+	err = niffer.AddCartEvent("distinctId", "test_event", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}

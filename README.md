@@ -18,22 +18,31 @@ func TestCase(t *testing.T) {
 	}
 
     // 通过debug模式调试代码
-    niffer := niffler.InitDebuggerConsumer("test", "http://127.0.0.1:8071/api/v1/order/abc")
-	err := niffer.AddUserEvent("distinctId", "test_event", properties)
+    niffer,err := niffler.InitDebuggerConsumer("test", "http://127.0.0.1:8071/api/v1/order/abc")
+    if err != nil {
+    	t.Log(err.Error())
+    }
+	err = niffer.AddUserEvent("distinctId", "test_event", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
 
     // 打印数据到文件内
-    nifferLog := niffler.InitConcurrentLoggingConsumer("test", "./event_log",false)
+    nifferLog,err1 := niffler.InitConcurrentLoggingConsumer("test", "./event_log",false)
+    if err1 != nil {
+    	t.Log(err1.Error())
+    }
 	defer nifferLog.Close() // 切记一定要记得关闭、落盘
-    err := nifferLog.AddUserEvent("distinctId", "test_event_log", properties)
+    err = nifferLog.AddUserEvent("distinctId", "test_event_log", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
     
     // 在控制台打印
-    nifflerConsole := niffler.InitConsoleConsumer("test")
+    nifflerConsole,err2 := niffler.InitConsoleConsumer("test")
+    if err2 != nil {
+    	t.Log(err2.Error())
+    }
     consoleErr := nifflerConsole.AddUserEvent("distinctId", "test_event_log", properties)
 	if consoleErr != nil {
 		t.Log(consoleErr.Error())

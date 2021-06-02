@@ -3,7 +3,7 @@ package constants
 const (
 	SDK_LIB 				= "Golang sdk"
 	// sdk 版本
-	SDK_VERSION 			= "1.0.4"
+	SDK_VERSION 			= "1.0.5"
 	// 字符串最大长度
 	STRING_VALUE_LEN_MAX 	= 8192
 	// key最大长度

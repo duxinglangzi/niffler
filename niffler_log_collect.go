@@ -27,48 +27,48 @@ type Niffler struct {
 }
 
 // 初始化 debug模式发送数据， 此模式为实时在线发送数据，仅在测试环节使用，上线前请切换至  InitConcurrentLoggingConsumer 方式
-func InitDebuggerConsumer(projectName, serverUrl string) Niffler {
+func InitDebuggerConsumer(projectName, serverUrl string) (*Niffler, error) {
 	debuggerConsumer, err := consumers.InitDebugger(serverUrl)
 	if err != nil {
-		panic(errors.New("init debug consumer error : " + err.Error()))
+		return nil, errors.New("init debug consumer error : " + err.Error())
 	}
 	return InitNiffler(projectName, debuggerConsumer)
 }
 
 // 初始化多进程方式写入文件
-func InitConcurrentLoggingConsumer(projectName, fileName string, day bool) Niffler {
+func InitConcurrentLoggingConsumer(projectName, fileName string, day bool) (*Niffler, error) {
 	concurrentLog, err := consumers.InitConcurrentLoggingConsumer(fileName, day)
 	if err != nil {
-		panic(errors.New("init concurrent log consumer error : " + err.Error()))
+		return nil, errors.New("init concurrent log consumer error : " + err.Error())
 	}
 	return InitNiffler(projectName, concurrentLog)
 }
 
 // 初始化 console 打印日志
-func InitConsoleConsumer(projectName string) Niffler {
+func InitConsoleConsumer(projectName string) (*Niffler, error) {
 	consoleConsumer, err := consumers.InitConsole()
 	if err != nil {
-		panic(errors.New("init console consumer error : " + err.Error()))
+		return nil, errors.New("init console consumer error : " + err.Error())
 	}
 	return InitNiffler(projectName, consoleConsumer)
 }
 
-func InitNiffler(projectName string, consumer consumers.Consumer) Niffler {
+func InitNiffler(projectName string, consumer consumers.Consumer) (*Niffler, error) {
 	if projectName == "" {
-		panic(errors.New("project name is null "))
+		return nil, errors.New("project name is null ")
 	}
 	marshal, _ := json.Marshal(map[string]string{
 		"niffler_sdk_name":    constants.SDK_LIB,
 		"niffler_sdk_version": constants.SDK_VERSION,
 	})
 	fmt.Fprintln(os.Stdout, string(marshal))
-	return Niffler{
+	return &Niffler{
 		ProjectName:     projectName,
 		Consumer:        consumer,
 		superProperties: map[string]interface{}{},
 		keywordPattern:  regexp.MustCompile(constants.KEYWORD_PATTERN),
 		valuePattern:    regexp.MustCompile(constants.VALUE_PATTERN),
-	}
+	}, nil
 }
 
 func (n *Niffler) Flush() {
@@ -85,6 +85,7 @@ func (n *Niffler) RegisterSuperProperties(superMap map[string]interface{}) {
 		n.superProperties[key] = val
 	}
 }
+
 // 清理公共属性
 func (n *Niffler) ClearSuperProperties() {
 	n.superProperties = make(map[string]interface{})
@@ -144,7 +145,7 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 	}
 	
 	if properties != nil {
-		eventProperties = util.MergeCopy(properties,eventProperties)
+		eventProperties = util.MergeCopy(properties, eventProperties)
 	}
 	// Event time
 	eventTime := n.extractEventTime(eventProperties)
@@ -161,7 +162,7 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 }
 
 // 日志打印， 当不想让日志信息进入到es时，传入空字符串即可
-func (n *Niffler) Log(logType string,properties map[string]interface{}) error {
+func (n *Niffler) Log(logType string, properties map[string]interface{}) error {
 	if properties == nil || len(properties) < 1 {
 		return errors.New("properties is null ")
 	}

@@ -7,7 +7,10 @@ import (
 )
 
 func TestConsoleConsumer(t *testing.T) {
-	niffer := niffler.InitConsoleConsumer("test")
+	niffer,err := niffler.InitConsoleConsumer("test")
+	if err != nil {
+		t.Log(err.Error())
+	}
 	superMap := make(map[string]interface{})
 	superMap["aaaaa"] = int64(2345)
 	superMap["bbbbbb"] = float64(2345.23123)
@@ -19,8 +22,9 @@ func TestConsoleConsumer(t *testing.T) {
 		"aa":            34.0034,
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
+		"keyvalue":     "values",
 	}
-	err := niffer.AddCartEvent("distinctId", "test_event", properties)
+	err = niffer.AddCartEvent("distinctId", "test_event", properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
