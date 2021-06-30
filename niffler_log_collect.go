@@ -91,38 +91,49 @@ func (n *Niffler) ClearSuperProperties() {
 	n.superProperties = make(map[string]interface{})
 }
 
-// @param distinctId 用户 ID
-// @param eventName  事件名称
-// @param properties 事件的属性
-// @throws InvalidArgumentException eventName 或 properties 不符合命名规范和类型规范时抛出该异常
+//  标记该事件信息为神策的数据，此事件数据不会进入es
+//  distinctId 用户 ID
+//  eventName  事件名称
+//  properties 事件的属性
+//  sensorModel 神策事件需要参数
+//  return error:  eventName 或 properties 不符合命名规范和类型规范时抛出该异常
+func (n *Niffler) AddSensorEvent(distinctId string, sensorType constants.SensorType, eventName string, sensorModel *constants.SensorModel, properties map[string]interface{}) error {
+	return n.AddEvent(distinctId, fmt.Sprintf("%v", sensorType), eventName, sensorModel, properties)
+}
+
+//  distinctId 用户 ID
+//  eventName  事件名称
+//  properties 事件的属性
+//  return error:  eventName 或 properties 不符合命名规范和类型规范时抛出该异常
 func (n *Niffler) AddUserEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "user", eventName, properties)
+	return n.AddEvent(distinctId, "user", eventName,nil, properties)
 }
 
 // 商品事件
 func (n *Niffler) AddGoodsEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "goods", eventName, properties)
+	return n.AddEvent(distinctId, "goods", eventName,nil, properties)
 }
 
 // 订单事件
 func (n *Niffler) AddOrderEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "order", eventName, properties)
+	return n.AddEvent(distinctId, "order", eventName,nil, properties)
 }
 
 // 购物车事件
 func (n *Niffler) AddCartEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "cart", eventName, properties)
+	return n.AddEvent(distinctId, "cart", eventName,nil, properties)
 }
 
-// 记录一个拥有一个或多个属性的事件。属性取值可接受类型为{@link Number}, {@link String}, {@link Date}和{@link List}；
-// 若属性包含 $time 字段，则它会覆盖事件的默认时间属性，该字段只接受{@link Date}类型；
+// 记录一个拥有一个或多个属性的事件。属性取值可接受类型为 string,int64,float64,bool,time.Time,[]string ;
+// 若属性包含 $time 字段，则它会覆盖事件的默认时间属性，该字段只接受 time.Time 类型.
 //
-// @param distinctId 用户 ID
-// @param eventType  事件类型(如: 用户、商品、订单、购物车 等等)
-// @param eventName  事件名称
-// @param properties 事件的属性
-// @throws error  distinctId 或 properties 不符合命名规范和类型规范时抛出该异常
-func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties map[string]interface{}) error {
+//  distinctId 用户 ID
+//  eventType  事件类型(如: 用户、商品、订单、购物车 等等)
+//  eventName  事件名称
+//  properties 事件的属性
+//  sensorModel 神策事件需要参数
+//  returns error  distinctId 或 eventName、properties 不符合命名规范和类型规范时抛出该异常
+func (n *Niffler) AddEvent(distinctId, eventType, eventName string,sensorModel *constants.SensorModel, properties map[string]interface{}) error {
 	err := n.assertKey("Distinct Id", distinctId)
 	if err != nil {
 		return err
@@ -131,9 +142,64 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 	if err != nil {
 		return err
 	}
-	err = n.assertKeyWithRegex("Event Name", eventName)
-	if err != nil {
-		return err
+	event := make(map[string]interface{})
+	instance := constants.GetInstance(eventType)
+	if instance != nil {
+		switch *instance {
+		case constants.TRACK:
+			err = n.assertKeyWithRegex("Event Name", eventName)
+			if err != nil {
+				return err
+			}
+		case constants.ITEM_DELETE, constants.ITEM_SET:
+			var itemType, itemId = "", ""
+			if sensorModel != nil {
+				itemType = sensorModel.ItemType
+				itemId = sensorModel.ItemId
+			}
+			err = n.assertKeyWithRegex("Item Type", itemType)
+			if err != nil {
+				return err
+			}
+			err = n.assertKey("Item Id", itemId)
+			if err != nil {
+				return err
+			}
+			eventName = ""
+			event["item_type"] = itemType
+			event["item_id"] = itemId
+		case constants.TRACK_SIGNUP:
+			eventName = "$SignUp"
+		case constants.PROFILE_SET, constants.PROFILE_SET_ONCE, constants.PROFILE_INCREMENT, constants.PROFILE_APPEND:
+			eventName = ""
+		case constants.PROFILE_UNSET:
+			if len(properties) == 0 {
+				return errors.New(" The properties is null.")
+			}
+			for k, v := range properties {
+				if k != "$project" {
+					val, ok := v.(bool)
+					if ok && val {
+						continue
+					}
+					return errors.New(" The property value of " + k + " should be true.")
+				}
+			}
+			eventName = ""
+		case constants.PROFILE_DELETE:
+			eventName = ""
+			properties = make(map[string]interface{})
+		}
+	} else {
+		err = n.assertKeyWithRegex("Event Name", eventName)
+		if err != nil {
+			return err
+		}
+	}
+	
+	//  判断sensor是否需要登录
+	if sensorModel != nil && sensorModel.IsLoginId {
+		event["$is_login_id"] = true
 	}
 	
 	// event properties
@@ -149,10 +215,11 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string, properties m
 	}
 	// Event time
 	eventTime := n.extractEventTime(eventProperties)
-	event := make(map[string]interface{})
 	event["distinct_id"] = distinctId
 	event["type"] = eventType
-	event["event"] = eventName
+	if eventName != "" {
+		event["event"] = eventName
+	}
 	event["time"] = eventTime
 	event["lib"] = n.getLibProperties()
 	event["event_id"] = strings.ReplaceAll(util.NewUUID(), "-", "")
@@ -210,6 +277,16 @@ func (n *Niffler) assertProperties(properties map[string]interface{}) error {
 		if err != nil {
 			return err
 		}
+		// 单独检查 $is_login_id
+		if k == "$is_login_id" {
+			switch v.(type) {
+			case bool:
+				continue
+			default:
+				return errors.New(" The property value of '$is_login_id' should be bool.")
+			}
+		}
+		
 		// 检查value 值，只支持部分类型
 		switch v.(type) {
 		case bool:

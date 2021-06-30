@@ -2,6 +2,7 @@ package examples
 
 import (
 	"github.com/duxinglangzi/niffler"
+	"github.com/duxinglangzi/niffler/constants"
 	"testing"
 	"time"
 )
@@ -23,11 +24,22 @@ func TestConsoleConsumer(t *testing.T) {
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
 		"keyvalue":     "values",
+		"original_id":	"asdfasf",
 	}
-	err = niffer.AddCartEvent("distinctId", "test_event", properties)
+	// err = niffer.AddCartEvent("distinctId", "test_event", properties)
+	// if err != nil {
+	// 	t.Log(err.Error())
+	// }
+	// 日志打印
+	// niffer.Log("info",properties)
+	
+	sensorModel := &constants.SensorModel{
+		ItemId:   "asfhkasjdhf",
+		ItemType: "asdkufasdf",
+	}
+	err = niffer.AddSensorEvent("dis_id", constants.PROFILE_SET, "test_event_ss", sensorModel, properties)
 	if err != nil {
 		t.Log(err.Error())
 	}
-	// 日志打印
-	niffer.Log("info",properties)
+	
 }
