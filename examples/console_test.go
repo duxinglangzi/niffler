@@ -24,7 +24,7 @@ func TestConsoleConsumer(t *testing.T) {
 		"array":         []string{"1", "323", "545"},
 		"timeTT":        time.Now(),
 		"keyvalue":     "values",
-		"original_id":	"asdfasf",
+		// "original_id":	"asdfasf",
 	}
 	// err = niffer.AddCartEvent("distinctId", "test_event", properties)
 	// if err != nil {
@@ -37,7 +37,7 @@ func TestConsoleConsumer(t *testing.T) {
 		ItemId:   "asfhkasjdhf",
 		ItemType: "asdkufasdf",
 	}
-	err = niffer.AddSensorEvent("dis_id", constants.PROFILE_SET, "test_event_ss", sensorModel, properties)
+	err = niffer.AddSensorEvent("dis_id","production", constants.PROFILE_SET, "test_event_ss", sensorModel, properties)
 	if err != nil {
 		t.Log(err.Error())
 	}

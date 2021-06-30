@@ -96,9 +96,13 @@ func (n *Niffler) ClearSuperProperties() {
 //  eventName  事件名称
 //  properties 事件的属性
 //  sensorModel 神策事件需要参数
+//
 //  return error:  eventName 或 properties 不符合命名规范和类型规范时抛出该异常
-func (n *Niffler) AddSensorEvent(distinctId string, sensorType constants.SensorType, eventName string, sensorModel *constants.SensorModel, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, fmt.Sprintf("%v", sensorType), eventName, sensorModel, properties)
+func (n *Niffler) AddSensorEvent(distinctId,projectName string, sensorType constants.SensorType, eventName string, sensorModel *constants.SensorModel, properties map[string]interface{}) error {
+	if projectName == "" {
+		return errors.New(" The 'projectName' is null.")
+	}
+	return n.AddEvent(distinctId, projectName, fmt.Sprintf("%v", sensorType), eventName, sensorModel, properties)
 }
 
 //  distinctId 用户 ID
@@ -106,22 +110,22 @@ func (n *Niffler) AddSensorEvent(distinctId string, sensorType constants.SensorT
 //  properties 事件的属性
 //  return error:  eventName 或 properties 不符合命名规范和类型规范时抛出该异常
 func (n *Niffler) AddUserEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "user", eventName,nil, properties)
+	return n.AddEvent(distinctId, "","user", eventName,nil, properties)
 }
 
 // 商品事件
 func (n *Niffler) AddGoodsEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "goods", eventName,nil, properties)
+	return n.AddEvent(distinctId, "","goods", eventName,nil, properties)
 }
 
 // 订单事件
 func (n *Niffler) AddOrderEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "order", eventName,nil, properties)
+	return n.AddEvent(distinctId, "","order", eventName,nil, properties)
 }
 
 // 购物车事件
 func (n *Niffler) AddCartEvent(distinctId, eventName string, properties map[string]interface{}) error {
-	return n.AddEvent(distinctId, "cart", eventName,nil, properties)
+	return n.AddEvent(distinctId, "","cart", eventName,nil, properties)
 }
 
 // 记录一个拥有一个或多个属性的事件。属性取值可接受类型为 string,int64,float64,bool,time.Time,[]string ;
@@ -133,7 +137,7 @@ func (n *Niffler) AddCartEvent(distinctId, eventName string, properties map[stri
 //  properties 事件的属性
 //  sensorModel 神策事件需要参数
 //  returns error  distinctId 或 eventName、properties 不符合命名规范和类型规范时抛出该异常
-func (n *Niffler) AddEvent(distinctId, eventType, eventName string,sensorModel *constants.SensorModel, properties map[string]interface{}) error {
+func (n *Niffler) AddEvent(distinctId,projectName, eventType, eventName string,sensorModel *constants.SensorModel, properties map[string]interface{}) error {
 	err := n.assertKey("Distinct Id", distinctId)
 	if err != nil {
 		return err
@@ -219,6 +223,9 @@ func (n *Niffler) AddEvent(distinctId, eventType, eventName string,sensorModel *
 	event["type"] = eventType
 	if eventName != "" {
 		event["event"] = eventName
+	}
+	if projectName != "" {
+		event["sensor_project_name"] = projectName
 	}
 	event["time"] = eventTime
 	event["lib"] = n.getLibProperties()
