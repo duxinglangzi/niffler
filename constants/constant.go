@@ -37,5 +37,6 @@ type SensorModel struct {
 	ItemType string
 	ItemId   string
 	// 用户 ID 是否是登录 ID，false 表示该 ID 是一个匿名 ID
-	IsLoginId bool
+	IsLoginId        bool
+	OriginDistinctId string
 }

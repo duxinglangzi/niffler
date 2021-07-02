@@ -37,8 +37,9 @@ func TestConsoleConsumer(t *testing.T) {
 	sensorModel := &constants.SensorModel{
 		ItemId:   "asfhkasjdhf",
 		ItemType: "asdkufasdf",
+		OriginDistinctId:  "ghjk",
 	}
-	err = niffer.AddSensorEvent("dis_id","production", constants.ITEM_SET, "test_event_ss", sensorModel, properties)
+	err = niffer.AddSensorEvent("dis_id","production", constants.TRACK_SIGNUP, "test_event_ss", sensorModel, properties)
 	if err != nil {
 		t.Log(err.Error())
 	}

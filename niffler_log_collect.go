@@ -95,7 +95,7 @@ func (n *Niffler) ClearSuperProperties() {
 //  distinctId 用户 ID
 //  eventName  事件名称
 //  properties 事件的属性
-//  sensorModel 神策事件需要参数
+//  sensorModel 神策事件参数, 当调用 ITEM_SET、ITEM_DELETE、TRACK_SIGNUP时需要此参数对象
 //  sensorProjectName 神策项目名称(必传)
 //
 //  return error:  eventName 或 properties 不符合命名规范和类型规范时抛出该异常
@@ -151,6 +151,15 @@ func (n *Niffler) AddSensorEvent(distinctId, sensorProjectName string, sensorTyp
 		if err != nil {
 			return err
 		}
+		originDistinctId := ""
+		if sensorModel != nil {
+			originDistinctId = sensorModel.OriginDistinctId
+		}
+		err = n.assertKey("Original Distinct Id", originDistinctId)
+		if err != nil {
+			return err
+		}
+		event["original_id"] = originDistinctId
 		eventName = "$SignUp"
 	case constants.PROFILE_SET, constants.PROFILE_SET_ONCE, constants.PROFILE_INCREMENT, constants.PROFILE_APPEND:
 		err = n.assertKey("Distinct Id", distinctId)
