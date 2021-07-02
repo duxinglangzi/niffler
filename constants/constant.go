@@ -1,11 +1,9 @@
 package constants
 
-import "fmt"
-
 const (
 	SDK_LIB 				= "Golang sdk"
 	// sdk 版本
-	SDK_VERSION 			= "1.0.7"
+	SDK_VERSION 			= "1.0.8"
 	// 字符串最大长度
 	STRING_VALUE_LEN_MAX 	= 8192
 	// key最大长度
@@ -33,23 +31,6 @@ const (
 	PROFILE_UNSET     SensorType = "sensor_profile_unset"     // 删除用户某一个属性
 	PROFILE_DELETE    SensorType = "sensor_profile_delete"    // 删除用户所有属性
 )
-
-func GetInstance(sensorType string) *SensorType {
-	switch sensorType {
-	case fmt.Sprintf("%v", TRACK): return convert(TRACK)
-	case fmt.Sprintf("%v", ITEM_SET): return convert(ITEM_SET)
-	case fmt.Sprintf("%v", ITEM_DELETE): return convert(ITEM_DELETE)
-	case fmt.Sprintf("%v", TRACK_SIGNUP): return convert(TRACK_SIGNUP)
-	case fmt.Sprintf("%v", PROFILE_SET): return convert(PROFILE_SET)
-	case fmt.Sprintf("%v", PROFILE_SET_ONCE): return convert(PROFILE_SET_ONCE)
-	case fmt.Sprintf("%v", PROFILE_INCREMENT): return convert(PROFILE_INCREMENT)
-	case fmt.Sprintf("%v", PROFILE_APPEND): return convert(PROFILE_APPEND)
-	case fmt.Sprintf("%v", PROFILE_UNSET): return convert(PROFILE_UNSET)
-	case fmt.Sprintf("%v", PROFILE_DELETE): return convert(PROFILE_DELETE)
-	default: return nil
-	}
-}
-func convert(sen SensorType) *SensorType { return &sen }
 
 // 神策相关数据
 type SensorModel struct {
